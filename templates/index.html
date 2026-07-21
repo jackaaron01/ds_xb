@@ -187,8 +187,10 @@ body{font-family:"Microsoft YaHei","微软雅黑",sans-serif;background:var(--bo
 <div class="preview-wrap">
 <div class="preview-box" id="previewArea" onclick="onPreviewClick(event)">
 <div class="preview-placeholder" id="previewPlaceholder">正在加载预览...</div>
-<canvas id="previewCanvas" style="display:none;max-width:100%;max-height:70vh;border-radius:4px"></canvas>
-<img id="previewImg" style="display:none" alt="预览">
+<div id="previewContainer" style="position:relative;display:none">
+<img id="previewBg" style="display:block;max-width:100%;max-height:70vh;border-radius:4px" alt="背景">
+<div id="textOverlay" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none"></div>
+</div>
 </div>
 </div>
 <div id="bgSizeInfo" style="font-size:10px;color:#8b949e;text-align:center;margin-top:3px"></div>
@@ -283,7 +285,7 @@ function renderBoxes(boxes){
     tag.onclick=(function(i){return function(){setActive(i)}})(b.id);tr.appendChild(tag);
   });
 }
-function onBoxChange(id){saveAll();clearTimeout(previewTimer);previewTimer=setTimeout(refreshPreview,300)}
+function onBoxChange(id){saveAll();clearTimeout(previewTimer);previewTimer=setTimeout(renderTextOverlay,100)}
 function addTextBox(){
   var boxes=readBoxes(),maxId=boxes.reduce(function(m,b){return Math.max(m,b.id)},0)+1;
   boxes.push({id:maxId,label:'文本框'+maxId,text:'',x:400,y:500,size:50,color:[180,0,0]});
@@ -311,19 +313,32 @@ function syncCoord(){
 }
 
 /* ===== 预览 ===== */
-function refreshPreview(){
-  var boxes=readBoxes().filter(function(b){return b.text&&b.text.trim()});
-  var params=boxes.map(function(b){return't'+b.id+'='+encodeURIComponent(b.text)}).join('&');
-  var url='/api/preview?active='+activeId+(params?'&'+params:'')+'&_='+Date.now();
-  var cv=$('previewCanvas'),ctx=cv.getContext('2d'),ph=$('previewPlaceholder');
-  var img=new Image();
-  img.onload=function(){
-    if(cv.width!==img.width||cv.height!==img.height){cv.width=img.width;cv.height=img.height}
-    img.decode().then(function(){ctx.drawImage(img,0,0);cv.style.display='block';ph.style.display='none'}).catch(function(){ctx.drawImage(img,0,0);cv.style.display='block';ph.style.display='none'});
-  };
-  img.onerror=function(){ph.innerHTML='⚠ 加载失败';ph.style.display='block'};
-  img.src=url;
+/* ===== 客户端预览（零闪烁） ===== */
+function loadPreviewBg(){
+  var img=$('previewBg'),ph=$('previewPlaceholder'),ct=$('previewContainer');
+  img.onload=function(){ph.style.display='none';ct.style.display='block';renderTextOverlay()};
+  img.onerror=function(){ph.innerHTML='⚠ 背景加载失败';ph.style.display='block'};
+  img.src='/api/bg_image?_='+Date.now();
 }
+function renderTextOverlay(){
+  var boxes=readBoxes(),overlay=$('textOverlay'),bg=$('previewBg');
+  if(!bg.complete||!bg.naturalWidth){return}
+  var scale=bg.offsetWidth/origW, sv=$('strokeWidth').value||0;
+  var fontPath=$('fontSelect').value;
+  overlay.innerHTML='';
+  boxes.forEach(function(b){
+    if(!b.text||!b.text.trim())return;
+    var div=document.createElement('div');
+    div.style.position='absolute';div.style.left=(b.x*scale)+'px';div.style.top=(b.y*scale)+'px';
+    div.style.transform='translate(-50%,-50%)';div.style.whiteSpace='nowrap';
+    div.style.fontSize=(b.size*scale)+'px';div.style.color=r2h(b.color);
+    div.style.fontWeight='normal';div.style.lineHeight='1';
+    if(fontPath){var fn=fontPath.split(/[\\/]/).pop().split('.')[0];div.style.fontFamily='"'+fn+'","Microsoft YaHei",sans-serif'}
+    if(sv>0){div.style.textShadow='0 0 '+sv+'px '+r2h(b.color)}
+    div.textContent=b.text;overlay.appendChild(div);
+  });
+}
+function refreshPreview(){renderTextOverlay()}
 
 /* ===== 微调 ===== */
 function stepCoord(axis,delta){
@@ -332,17 +347,15 @@ function stepCoord(axis,delta){
 function stepSize(delta){var el=$('coordSize');el.value=Math.max(6,+el.value+delta);onSizeInput()}
 function onCoordInput(){
   var box=readBoxes().filter(function(b){return b.id===activeId})[0];if(!box)return;
-  box.x=+$('coordX').value;box.y=+$('coordY').value;writeBoxUI(box);saveAll();
-  clearTimeout(previewTimer);previewTimer=setTimeout(refreshPreview,200);
+  box.x=+$('coordX').value;box.y=+$('coordY').value;writeBoxUI(box);saveAll();renderTextOverlay();
 }
 function onSizeInput(){
   var box=readBoxes().filter(function(b){return b.id===activeId})[0];if(!box)return;
-  box.size=+$('coordSize').value;writeBoxUI(box);saveAll();
-  clearTimeout(previewTimer);previewTimer=setTimeout(refreshPreview,200);
+  box.size=+$('coordSize').value;writeBoxUI(box);saveAll();renderTextOverlay();
 }
 function onPreviewClick(e){
-  var cv=$('previewCanvas');if(!cv||cv.style.display==='none')return;
-  var rect=cv.getBoundingClientRect(),scale=origW/cv.offsetWidth;
+  var bg=$('previewBg');if(!bg||!bg.offsetWidth)return;
+  var rect=bg.getBoundingClientRect(),scale=origW/bg.offsetWidth;
   var rx=Math.round((e.clientX-rect.left)*scale),ry=Math.round((e.clientY-rect.top)*scale);
   $('coordX').value=rx;$('coordY').value=ry;onCoordInput();toast('已定位→('+rx+','+ry+')');
 }
@@ -359,7 +372,7 @@ function loadConfig(){
     $('outputSize').value=cfg.output_size||'original';$('outputFormat').value=cfg.output_format||'png';
     var fs=$('fontSelect');if(cfg.font_path&&fs)fs.value=cfg.font_path;
     loadFontPreview();
-    if(cfg.bg_exists){loadBgInfo()}else{var bi=$('bgInfo');if(bi)bi.textContent='⚠ 请上传背景图'}
+    if(cfg.bg_exists){loadBgInfo();loadPreviewBg()}else{var bi=$('bgInfo');if(bi)bi.textContent='⚠ 请上传背景图'}
     renderBoxes(cfg.text_boxes||[]);configReady=true;
   }).catch(function(e){console.error(e)});
 }
@@ -390,7 +403,7 @@ function loadFontPreview(){
     img.src='/api/font_preview/'+(dp||encodeURIComponent(path))+'?text=金榜题名&size=30&bg='+bg+'&_='+Date.now();img.style.display='block'
   }else img.style.display='none';
 }
-function onFontChange(){loadFontPreview();saveAll();clearTimeout(previewTimer);previewTimer=setTimeout(refreshPreview,300)}
+function onFontChange(){loadFontPreview();saveAll();renderTextOverlay()}
 
 /* ===== 描边 ===== */
 function onStrokeInput(){$('strokeWidthVal').textContent=$('strokeWidth').value}
@@ -409,7 +422,7 @@ function onBgUpload(){
   var f=$('bgUpload').files[0];if(!f)return;var fd=new FormData();fd.append('file',f);
   toast('上传中...','warn');
   fetch('/api/upload_bg',{method:'POST',body:fd}).then(function(r){return r.json()}).then(function(d){
-    if(d.success){toast('背景已更新');loadBgInfo();saveAll()}else toast(d.error||'失败','error')
+    if(d.success){toast('背景已更新');loadBgInfo();loadPreviewBg();saveAll()}else toast(d.error||'失败','error')
   }).catch(function(){toast('上传失败','error')});
 }
 
@@ -489,7 +502,7 @@ fetch('/api/getip').then(function(r){return r.json()}).then(function(d){
   $('ipDisplay').textContent='🌐 http://127.0.0.1:5000'+(d.ip!=='127.0.0.1'?'  |  局域网: http://'+d.ip+':5000':'')
 }).catch(function(){});
 loadFonts();
-loadConfig().then(function(){refreshPreview()});
+loadConfig();
 </script>
 </body>
 </html>

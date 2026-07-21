@@ -465,6 +465,17 @@ def api_bg_info():
     return jsonify({"width": img.size[0], "height": img.size[1], "filename": os.path.basename(bg)})
 
 
+@app.route("/api/bg_image")
+def api_bg_image():
+    """直接返回背景原图，供前端客户端叠加文字"""
+    cfg = load_cfg()
+    bg = cfg.get("bg_path", "")
+    if not os.path.exists(bg):
+        return jsonify({"error": "无背景图"}), 404
+    fmt = "jpeg" if bg.lower().endswith((".jpg", ".jpeg")) else "png"
+    return send_file(bg, mimetype=f"image/{fmt}")
+
+
 @app.route("/api/getip")
 def api_getip():
     hostname = socket.gethostname()
