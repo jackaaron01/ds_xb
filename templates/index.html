@@ -187,6 +187,7 @@ body{font-family:"Microsoft YaHei","微软雅黑",sans-serif;background:var(--bo
 <div class="preview-wrap">
 <div class="preview-box" id="previewArea" onclick="onPreviewClick(event)">
 <div class="preview-placeholder" id="previewPlaceholder">正在加载预览...</div>
+<canvas id="previewCanvas" style="display:none;max-width:100%;max-height:70vh;border-radius:4px"></canvas>
 <img id="previewImg" style="display:none" alt="预览">
 </div>
 </div>
@@ -314,11 +315,15 @@ function refreshPreview(){
   var boxes=readBoxes().filter(function(b){return b.text&&b.text.trim()});
   var params=boxes.map(function(b){return't'+b.id+'='+encodeURIComponent(b.text)}).join('&');
   var url='/api/preview?active='+activeId+(params?'&'+params:'')+'&_='+Date.now();
-  var img=$('previewImg'),ph=$('previewPlaceholder');
-  fetch(url).then(function(r){if(!r.ok)throw Error('status '+r.status);return r.blob()}).then(function(blob){
-    if(img.src&&img.src.startsWith('blob:'))URL.revokeObjectURL(img.src);
-    img.src=URL.createObjectURL(blob);img.style.opacity='1';img.style.display='block';ph.style.display='none';
-  }).catch(function(){img.style.opacity='1';img.style.display='none';ph.style.display='block';ph.innerHTML='⚠ 背景加载失败'});
+  var cv=$('previewCanvas'),ph=$('previewPlaceholder');
+  var img=new Image();
+  img.onload=function(){
+    cv.width=img.width;cv.height=img.height;
+    cv.getContext('2d').drawImage(img,0,0);
+    cv.style.display='block';ph.style.display='none';
+  };
+  img.onerror=function(){ph.innerHTML='⚠ 加载失败';ph.style.display='block'};
+  img.src=url;
 }
 
 /* ===== 微调 ===== */
@@ -335,8 +340,8 @@ function onSizeInput(){
   box.size=+$('coordSize').value;writeBoxUI(box);saveAll();setTimeout(refreshPreview,100);
 }
 function onPreviewClick(e){
-  var img=$('previewImg');if(!img||img.style.display==='none')return;
-  var rect=img.getBoundingClientRect(),scale=origW/img.offsetWidth;
+  var cv=$('previewCanvas');if(!cv||cv.style.display==='none')return;
+  var rect=cv.getBoundingClientRect(),scale=origW/cv.offsetWidth;
   var rx=Math.round((e.clientX-rect.left)*scale),ry=Math.round((e.clientY-rect.top)*scale);
   $('coordX').value=rx;$('coordY').value=ry;onCoordInput();toast('已定位→('+rx+','+ry+')');
 }
