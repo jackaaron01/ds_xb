@@ -233,7 +233,7 @@ body{font-family:"Microsoft YaHei","微软雅黑",sans-serif;background:var(--bo
 
 <script>
 /* ===== 全局状态 ===== */
-var activeId=1,origW=1055,origH=1491,lastFile='',configReady=false;
+var activeId=1,origW=1055,origH=1491,lastFile='',configReady=false,previewTimer=null;
 
 /* ===== 工具函数 ===== */
 function $(id){return document.getElementById(id)}
@@ -282,7 +282,7 @@ function renderBoxes(boxes){
     tag.onclick=(function(i){return function(){setActive(i)}})(b.id);tr.appendChild(tag);
   });
 }
-function onBoxChange(id){saveAll();setTimeout(refreshPreview,100)}
+function onBoxChange(id){saveAll();clearTimeout(previewTimer);previewTimer=setTimeout(refreshPreview,300)}
 function addTextBox(){
   var boxes=readBoxes(),maxId=boxes.reduce(function(m,b){return Math.max(m,b.id)},0)+1;
   boxes.push({id:maxId,label:'文本框'+maxId,text:'',x:400,y:500,size:50,color:[180,0,0]});
@@ -383,7 +383,13 @@ function loadFontPreview(){
     img.src='/api/font_preview/'+(dp||encodeURIComponent(path))+'?text=金榜题名&size=30&bg='+bg+'&_='+Date.now();img.style.display='block'
   }else img.style.display='none';
 }
-function onFontChange(){loadFontPreview();saveAll();setTimeout(refreshPreview,200)}
+function onFontChange(){
+  loadFontPreview();
+  fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({font_path:$('fontSelect').value})}).then(function(){
+      refreshPreview();
+    });
+}
 
 /* ===== 描边 ===== */
 function onStrokeInput(){$('strokeWidthVal').textContent=$('strokeWidth').value}
