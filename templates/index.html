@@ -318,9 +318,8 @@ function refreshPreview(){
   var cv=$('previewCanvas'),ph=$('previewPlaceholder');
   var img=new Image();
   img.onload=function(){
-    cv.width=img.width;cv.height=img.height;
-    cv.getContext('2d').drawImage(img,0,0);
-    cv.style.display='block';ph.style.display='none';
+    if(cv.width!==img.width||cv.height!==img.height)requestAnimationFrame(function(){cv.width=img.width;cv.height=img.height});
+    requestAnimationFrame(function(){cv.getContext('2d').drawImage(img,0,0);cv.style.display='block';ph.style.display='none'});
   };
   img.onerror=function(){ph.innerHTML='⚠ 加载失败';ph.style.display='block'};
   img.src=url;
@@ -333,11 +332,13 @@ function stepCoord(axis,delta){
 function stepSize(delta){var el=$('coordSize');el.value=Math.max(6,+el.value+delta);onSizeInput()}
 function onCoordInput(){
   var box=readBoxes().filter(function(b){return b.id===activeId})[0];if(!box)return;
-  box.x=+$('coordX').value;box.y=+$('coordY').value;writeBoxUI(box);saveAll();setTimeout(refreshPreview,100);
+  box.x=+$('coordX').value;box.y=+$('coordY').value;writeBoxUI(box);saveAll();
+  clearTimeout(previewTimer);previewTimer=setTimeout(refreshPreview,200);
 }
 function onSizeInput(){
   var box=readBoxes().filter(function(b){return b.id===activeId})[0];if(!box)return;
-  box.size=+$('coordSize').value;writeBoxUI(box);saveAll();setTimeout(refreshPreview,100);
+  box.size=+$('coordSize').value;writeBoxUI(box);saveAll();
+  clearTimeout(previewTimer);previewTimer=setTimeout(refreshPreview,200);
 }
 function onPreviewClick(e){
   var cv=$('previewCanvas');if(!cv||cv.style.display==='none')return;
