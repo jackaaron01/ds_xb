@@ -408,12 +408,17 @@ def api_batch():
                 continue
             val = str(cell).strip()
             hl = headers[ci].lower()
-            # 匹配标签名称
+            matched = False
+            # 先按标签名称匹配
             for box in txt_boxes:
                 label_low = box["label"].lower()
                 if hl in label_low or label_low in hl:
                     box["text"] = val
+                    matched = True
                     break
+            # 未匹配则按列位置填入（第N列→第N个文本框）
+            if not matched and ci < len(txt_boxes):
+                txt_boxes[ci]["text"] = val
         try:
             img = Image.open(cfg["bg_path"]).convert("RGB")
             draw_card(img, txt_boxes, stroke)
