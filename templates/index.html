@@ -315,11 +315,11 @@ function refreshPreview(){
   var boxes=readBoxes().filter(function(b){return b.text&&b.text.trim()});
   var params=boxes.map(function(b){return't'+b.id+'='+encodeURIComponent(b.text)}).join('&');
   var url='/api/preview?active='+activeId+(params?'&'+params:'')+'&_='+Date.now();
-  var cv=$('previewCanvas'),ph=$('previewPlaceholder');
+  var cv=$('previewCanvas'),ctx=cv.getContext('2d'),ph=$('previewPlaceholder');
   var img=new Image();
   img.onload=function(){
-    if(cv.width!==img.width||cv.height!==img.height)requestAnimationFrame(function(){cv.width=img.width;cv.height=img.height});
-    requestAnimationFrame(function(){cv.getContext('2d').drawImage(img,0,0);cv.style.display='block';ph.style.display='none'});
+    if(cv.width!==img.width||cv.height!==img.height){cv.width=img.width;cv.height=img.height}
+    img.decode().then(function(){ctx.drawImage(img,0,0);cv.style.display='block';ph.style.display='none'}).catch(function(){ctx.drawImage(img,0,0);cv.style.display='block';ph.style.display='none'});
   };
   img.onerror=function(){ph.innerHTML='⚠ 加载失败';ph.style.display='block'};
   img.src=url;
