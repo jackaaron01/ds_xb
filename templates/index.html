@@ -315,10 +315,10 @@ function refreshPreview(){
   var params=boxes.map(function(b){return't'+b.id+'='+encodeURIComponent(b.text)}).join('&');
   var url='/api/preview?active='+activeId+(params?'&'+params:'')+'&_='+Date.now();
   var img=$('previewImg'),ph=$('previewPlaceholder');
-  var loader=new Image();
-  loader.onload=function(){img.src=loader.src;img.style.display='block';ph.style.display='none'};
-  loader.onerror=function(){ph.style.display='block';ph.innerHTML='⚠ 背景加载失败<br><small><a href="javascript:refreshPreview()" style="color:#58a6ff">重试</a></small>';img.style.display='none'};
-  loader.src=url;
+  img.onload=function(){img.style.opacity='1';img.style.display='block';ph.style.display='none'};
+  img.onerror=function(){img.style.opacity='1';img.style.display='none';ph.style.display='block';ph.innerHTML='⚠ 背景加载失败'};
+  img.style.opacity='0.35';
+  img.src=url;
 }
 
 /* ===== 微调 ===== */
