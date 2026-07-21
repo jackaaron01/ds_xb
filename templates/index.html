@@ -124,7 +124,7 @@ body{font-family:"Microsoft YaHei","微软雅黑",sans-serif;background:var(--bo
 <div class="toast" id="toast"></div>
 
 <script>
-var activeId=1,origW=1055,origH=1491,lastFile='',previewTimer=null;
+var activeId=1,origW=1055,lastFile='',previewTimer=null;
 
 function $(id){return document.getElementById(id)}
 function qs(e,s){return e.querySelector(s)}
@@ -204,7 +204,7 @@ function onSizeInput(){var box=readBoxes().filter(function(b){return b.id===acti
 
 // 配置
 function saveAll(boxes){var b=boxes||readBoxes();fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text_boxes:b,stroke_width:+$('strokeWidth').value,output_size:$('outputSize').value,output_format:$('outputFormat').value,font_path:$('fontSelect').value})})}
-function loadConfig(){return fetch('/api/config').then(function(r){return r.json()}).then(function(cfg){$('strokeWidth').value=cfg.stroke_width||0;$('strokeWidthVal').textContent=cfg.stroke_width||0;$('outputSize').value=cfg.output_size||'original';$('outputFormat').value=cfg.output_format||'png';var fs=$('fontSelect');if(cfg.font_path&&fs)fs.value=cfg.font_path;loadFontPreview();if(cfg.bg_exists){loadBgInfo()}else{var bi=$('bgInfo');if(bi)bi.textContent='⚠ 请上传背景图'}renderBoxes(cfg.text_boxes||[])}).catch(function(e){console.error(e)})}
+function loadConfig(){return fetch('/api/config').then(function(r){return r.json()}).then(function(cfg){$('strokeWidth').value=cfg.stroke_width||0;$('strokeWidthVal').textContent=cfg.stroke_width||0;$('outputSize').value=cfg.output_size||'original';$('outputFormat').value=cfg.output_format||'png';var fs=$('fontSelect');if(cfg.font_path&&fs)fs.value=cfg.font_path;loadFontPreview();if(cfg.bg_exists){loadBgInfo()}else{var bi=$('bgInfo');if(bi)bi.textContent='⚠ 请上传背景图'}renderBoxes(cfg.text_boxes||[]);refreshPreview()}).catch(function(e){console.error(e)})}
 function resetConfig(){if(!confirm('确定恢复默认配置？'))return;fetch('/api/config/reset',{method:'POST'}).then(function(){loadConfig().then(function(){refreshPreview()})})}
 
 // 字体
@@ -217,7 +217,7 @@ function onFontChange(){loadFontPreview();saveAll();setTimeout(refreshPreview,20
 // 描边/背景
 function onStrokeInput(){$('strokeWidthVal').textContent=$('strokeWidth').value}
 function onStrokeChange(){var v=$('strokeWidth').value;$('strokeWidthVal').textContent=v;fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stroke_width:+v})}).then(refreshPreview)}
-function loadBgInfo(){fetch('/api/bg_info').then(function(r){return r.json()}).then(function(d){if(d.width){origW=d.width;origH=d.height;$('bgInfo').textContent='✅ '+d.filename+' ('+d.width+'×'+d.height+')';$('bgSizeInfo').textContent='原始尺寸: '+d.width+'×'+d.height}refreshPreview()}).catch(function(){})}
+function loadBgInfo(){fetch('/api/bg_info').then(function(r){return r.json()}).then(function(d){if(d.width){origW=d.width;$('bgInfo').textContent='✅ '+d.filename+' ('+d.width+'×'+d.height+')';$('bgSizeInfo').textContent='原始尺寸: '+d.width+'×'+d.height}refreshPreview()}).catch(function(){refreshPreview()})}
 function onBgUpload(){var f=$('bgUpload').files[0];if(!f)return;var fd=new FormData();fd.append('file',f);toast('上传中...','warn');fetch('/api/upload_bg',{method:'POST',body:fd}).then(function(r){return r.json()}).then(function(d){if(d.success){toast('背景已更新');loadBgInfo();saveAll()}else toast(d.error||'失败','error')}).catch(function(){toast('上传失败','error')})}
 
 // 生成

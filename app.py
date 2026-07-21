@@ -117,8 +117,9 @@ def save_cfg(cfg):
     os.replace(tmp, CONFIG_FILE)
 
 
-def resolve_font(size):
-    cfg = load_cfg()
+def resolve_font(size, cfg=None):
+    if cfg is None:
+        cfg = load_cfg()
     fp = cfg.get("font_path", "")
     if fp and os.path.exists(fp):
         try:
@@ -159,6 +160,7 @@ def draw_text(draw, pos, text, font, fill, stroke):
 
 def draw_card(img, boxes, stroke):
     draw = ImageDraw.Draw(img)
+    cfg = load_cfg()
     for box in boxes:
         text = box.get("text", "").strip()
         if not text:
@@ -167,7 +169,7 @@ def draw_card(img, boxes, stroke):
         x = box.get("x", 300)
         y = box.get("y", 500)
         color = tuple(box.get("color", [180, 0, 0]))
-        font = resolve_font(size)
+        font = resolve_font(size, cfg)
         bbox = draw.textbbox((0, 0), text, font=font)
         tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
         draw_text(draw, (x - tw // 2, y - th // 2), text, font, color, stroke)
@@ -275,7 +277,7 @@ def api_preview():
         ss = max(6, int(box.get("size", 60) * scale))
         color = tuple(box.get("color", [180, 0, 0]))
         try:
-            font = resolve_font(ss)
+            font = resolve_font(ss, cfg)
         except Exception:
             font = ImageFont.load_default()
         bbox = draw_rz.textbbox((0, 0), text, font=font)
@@ -463,17 +465,6 @@ def api_bg_info():
         return jsonify({"error": "无背景图"})
     img = Image.open(bg)
     return jsonify({"width": img.size[0], "height": img.size[1], "filename": os.path.basename(bg)})
-
-
-@app.route("/api/bg_image")
-def api_bg_image():
-    """直接返回背景原图，供前端客户端叠加文字"""
-    cfg = load_cfg()
-    bg = cfg.get("bg_path", "")
-    if not os.path.exists(bg):
-        return jsonify({"error": "无背景图"}), 404
-    fmt = "jpeg" if bg.lower().endswith((".jpg", ".jpeg")) else "png"
-    return send_file(bg, mimetype=f"image/{fmt}")
 
 
 @app.route("/api/getip")
