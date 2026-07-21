@@ -1,0 +1,28 @@
+# Build artifacts
+dist/
+build/
+*.spec
+*.exe
+
+# Release packages
+release/
+*.zip
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Runtime files (generated at runtime, not source)
+output/
+fonts_cache.json
+config.json
+*.tmp
+
+# Debug logs
+*.txt
+
+# IDE
+.vscode/
+.idea/
