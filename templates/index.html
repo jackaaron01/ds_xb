@@ -344,7 +344,7 @@ function onPreviewClick(e){
 function saveAll(boxes){
   var b=boxes||readBoxes();
   fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({text_boxes:b,stroke_width:+$('strokeWidth').value,output_size:$('outputSize').value,output_format:$('outputFormat').value})});
+    body:JSON.stringify({text_boxes:b,stroke_width:+$('strokeWidth').value,output_size:$('outputSize').value,output_format:$('outputFormat').value,font_path:$('fontSelect').value})});
 }
 function loadConfig(){
   return fetch('/api/config').then(function(r){return r.json()}).then(function(cfg){
@@ -383,13 +383,7 @@ function loadFontPreview(){
     img.src='/api/font_preview/'+(dp||encodeURIComponent(path))+'?text=金榜题名&size=30&bg='+bg+'&_='+Date.now();img.style.display='block'
   }else img.style.display='none';
 }
-function onFontChange(){
-  loadFontPreview();
-  fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({font_path:$('fontSelect').value})}).then(function(){
-      refreshPreview();
-    });
-}
+function onFontChange(){loadFontPreview();saveAll();clearTimeout(previewTimer);previewTimer=setTimeout(refreshPreview,300)}
 
 /* ===== 描边 ===== */
 function onStrokeInput(){$('strokeWidthVal').textContent=$('strokeWidth').value}
