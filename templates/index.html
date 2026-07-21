@@ -315,10 +315,10 @@ function refreshPreview(){
   var params=boxes.map(function(b){return't'+b.id+'='+encodeURIComponent(b.text)}).join('&');
   var url='/api/preview?active='+activeId+(params?'&'+params:'')+'&_='+Date.now();
   var img=$('previewImg'),ph=$('previewPlaceholder');
-  img.onload=function(){img.style.opacity='1';img.style.display='block';ph.style.display='none'};
-  img.onerror=function(){img.style.opacity='1';img.style.display='none';ph.style.display='block';ph.innerHTML='⚠ 背景加载失败'};
-  img.style.opacity='0.35';
-  img.src=url;
+  fetch(url).then(function(r){if(!r.ok)throw Error('status '+r.status);return r.blob()}).then(function(blob){
+    if(img.src&&img.src.startsWith('blob:'))URL.revokeObjectURL(img.src);
+    img.src=URL.createObjectURL(blob);img.style.opacity='1';img.style.display='block';ph.style.display='none';
+  }).catch(function(){img.style.opacity='1';img.style.display='none';ph.style.display='block';ph.innerHTML='⚠ 背景加载失败'});
 }
 
 /* ===== 微调 ===== */
@@ -353,7 +353,7 @@ function loadConfig(){
     $('outputSize').value=cfg.output_size||'original';$('outputFormat').value=cfg.output_format||'png';
     var fs=$('fontSelect');if(cfg.font_path&&fs)fs.value=cfg.font_path;
     loadFontPreview();
-    if(cfg.bg_exists)loadBgInfo();else{var bi=$('bgInfo');if(bi)bi.textContent='⚠ 请上传背景图'}
+    if(cfg.bg_exists){loadBgInfo()}else{var bi=$('bgInfo');if(bi)bi.textContent='⚠ 请上传背景图'}
     renderBoxes(cfg.text_boxes||[]);configReady=true;
   }).catch(function(e){console.error(e)});
 }
