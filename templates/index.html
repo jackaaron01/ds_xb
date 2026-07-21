@@ -325,18 +325,24 @@ function renderTextOverlay(){
   if(!bg.complete||!bg.naturalWidth){return}
   var scale=bg.offsetWidth/origW, sv=$('strokeWidth').value||0;
   var fontPath=$('fontSelect').value;
-  overlay.innerHTML='';
+  // 复用已有div，避免innerHTML清空闪烁
+  var existing={};overlay.querySelectorAll('div').forEach(function(d){existing[d.dataset.bid]=d});
+  var used={};
   boxes.forEach(function(b){
     if(!b.text||!b.text.trim())return;
-    var div=document.createElement('div');
-    div.style.position='absolute';div.style.left=(b.x*scale)+'px';div.style.top=(b.y*scale)+'px';
-    div.style.transform='translate(-50%,-50%)';div.style.whiteSpace='nowrap';
+    used[b.id]=true;
+    var div=existing[b.id]||document.createElement('div');
+    if(!existing[b.id]){div.style.position='absolute';div.style.transform='translate(-50%,-50%)';div.style.whiteSpace='nowrap';div.style.fontWeight='normal';div.style.lineHeight='1'}
+    div.dataset.bid=b.id;
+    div.style.left=(b.x*scale)+'px';div.style.top=(b.y*scale)+'px';
     div.style.fontSize=(b.size*scale)+'px';div.style.color=r2h(b.color);
-    div.style.fontWeight='normal';div.style.lineHeight='1';
     if(fontPath){var fn=fontPath.split(/[\\/]/).pop().split('.')[0];div.style.fontFamily='"'+fn+'","Microsoft YaHei",sans-serif'}
-    if(sv>0){div.style.textShadow='0 0 '+sv+'px '+r2h(b.color)}
-    div.textContent=b.text;overlay.appendChild(div);
+    if(sv>0){div.style.textShadow='0 0 '+sv+'px '+r2h(b.color)}else{div.style.textShadow='none'}
+    div.textContent=b.text;
+    if(!existing[b.id])overlay.appendChild(div);
   });
+  // 移除不再需要的div
+  Object.keys(existing).forEach(function(k){if(!used[k]){existing[k].remove()}});
 }
 function refreshPreview(){renderTextOverlay()}
 
