@@ -316,8 +316,18 @@ function refreshPreview(){
   var url='/api/preview?active='+activeId+(params?'&'+params:'')+'&_='+Date.now();
   var img=$('previewImg'),ph=$('previewPlaceholder');
   img.onload=function(){img.style.display='block';ph.style.display='none'};
-  img.onerror=function(){img.style.display='none';ph.style.display='block';ph.innerHTML='⚠ 背景图加载失败'};
+  img.onerror=function(){
+    img.style.display='none';ph.style.display='block';
+    ph.innerHTML='⚠ 背景加载失败，请确认背景图已上传<br><small style="color:#888">若持续失败，点击<a href="javascript:refreshPreview()" style="color:#58a6ff">重试</a></small>';
+  };
   img.src=url;img.style.display='none';ph.style.display='block';ph.innerHTML='加载中...';
+}
+
+function refreshPreviewForce(){
+  var img=$('previewImg');
+  img.src='/api/preview?active='+activeId+'&_='+Date.now();
+  img.onload=function(){img.style.display='block';$('previewPlaceholder').style.display='none'};
+  img.onerror=function(){$('previewPlaceholder').innerHTML='⚠ 背景图不存在，请上传'};
 }
 
 /* ===== 微调 ===== */
