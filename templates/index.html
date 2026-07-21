@@ -314,9 +314,13 @@ function syncCoord(){
 
 /* ===== 预览 ===== */
 /* ===== 客户端预览（零闪烁） ===== */
+var bgInfoReady=false;
 function loadPreviewBg(){
   var img=$('previewBg'),ph=$('previewPlaceholder'),ct=$('previewContainer');
-  img.onload=function(){ph.style.display='none';ct.style.display='block';renderTextOverlay()};
+  img.onload=function(){
+    ph.style.display='none';ct.style.display='block';
+    if(bgInfoReady) renderTextOverlay();
+  };
   img.onerror=function(){ph.innerHTML='⚠ 背景加载失败';ph.style.display='block'};
   img.src='/api/bg_image?_='+Date.now();
 }
@@ -422,11 +426,12 @@ function onStrokeChange(){
 function loadBgInfo(){
   fetch('/api/bg_info').then(function(r){return r.json()}).then(function(d){
     if(d.width){origW=d.width;origH=d.height;$('bgInfo').textContent='✅ '+d.filename+' ('+d.width+'×'+d.height+')';$('bgSizeInfo').textContent='原始尺寸: '+d.width+'×'+d.height}
-  }).catch(function(){});
+    bgInfoReady=true;renderTextOverlay();
+  }).catch(function(){bgInfoReady=true;});
 }
 function onBgUpload(){
   var f=$('bgUpload').files[0];if(!f)return;var fd=new FormData();fd.append('file',f);
-  toast('上传中...','warn');
+  toast('上传中...','warn');bgInfoReady=false;
   fetch('/api/upload_bg',{method:'POST',body:fd}).then(function(r){return r.json()}).then(function(d){
     if(d.success){toast('背景已更新');loadBgInfo();loadPreviewBg();saveAll()}else toast(d.error||'失败','error')
   }).catch(function(){toast('上传失败','error')});
