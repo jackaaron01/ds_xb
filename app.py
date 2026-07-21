@@ -303,6 +303,11 @@ def api_preview():
 def api_font_preview(fontpath):
     text = request.args.get("text", "金榜题名")
     size = int(request.args.get("size", 28))
+    bg_hex = request.args.get("bg", "1e2430")
+    try:
+        r = int(bg_hex[0:2], 16); g = int(bg_hex[2:4], 16); b = int(bg_hex[4:6], 16)
+    except Exception:
+        r, g, b = 30, 35, 45
     if not os.path.exists(fontpath):
         return jsonify({"error": "字体不存在"}), 404
     try:
@@ -314,7 +319,7 @@ def api_font_preview(fontpath):
     bbox = d.textbbox((0, 0), text, font=font)
     tw, th = bbox[2] - bbox[0] + 8, bbox[3] - bbox[1] + 8
     pad = 6
-    img = Image.new("RGBA", (tw + pad * 2, th + pad * 2), (30, 35, 45, 255))
+    img = Image.new("RGBA", (tw + pad * 2, th + pad * 2), (r, g, b, 255))
     draw = ImageDraw.Draw(img)
     draw.text((pad - bbox[0], pad - bbox[1]), text, font=font, fill=(255, 215, 0, 255))
     buf = io.BytesIO()
