@@ -22,6 +22,38 @@
   --modal-bg:#fff;--ph-color:#aaa;--tag-bg:rgba(0,0,0,0.03);
   --tag-border:rgba(0,0,0,0.1);--body-bg:#f0f2f5;--fp-bg:'e8e8e8';
 }
+[data-theme="blue"]{
+  --bg:#eef4fb;--bg2:#fff;--text:#2c3e50;--panel:rgba(0,0,0,0.02);
+  --border:rgba(66,133,244,0.15);--input-bg:#fff;--input-border:#c8daf8;
+  --muted:#6b8299;--gold:#4285f4;--card:rgba(66,133,244,0.03);
+  --card-border:rgba(66,133,244,0.1);--modal-bg:#fff;--ph-color:#a0b8d0;
+  --tag-bg:rgba(66,133,244,0.05);--tag-border:rgba(66,133,244,0.15);
+  --red:#e74c3c;--green:#27ae60;--body-bg:#e8eff8;--fp-bg:'dce8f4';
+}
+[data-theme="pink"]{
+  --bg:#fef5f7;--bg2:#fff;--text:#4a3040;--panel:rgba(0,0,0,0.02);
+  --border:rgba(233,150,170,0.2);--input-bg:#fff;--input-border:#f0c8d8;
+  --muted:#a08090;--gold:#e87890;--card:rgba(233,150,170,0.04);
+  --card-border:rgba(233,150,170,0.12);--modal-bg:#fff;--ph-color:#c8a0b0;
+  --tag-bg:rgba(233,150,170,0.06);--tag-border:rgba(233,150,170,0.15);
+  --red:#d44a6a;--green:#50a070;--body-bg:#fdf0f3;--fp-bg:'f4e0e8';
+}
+[data-theme="sunset"]{
+  --bg:#fff8f0;--bg2:#fff;--text:#4a3a2a;--panel:rgba(0,0,0,0.02);
+  --border:rgba(240,160,80,0.2);--input-bg:#fff;--input-border:#f0c898;
+  --muted:#a09078;--gold:#e89850;--card:rgba(240,160,80,0.04);
+  --card-border:rgba(240,160,80,0.12);--modal-bg:#fff;--ph-color:#c8a880;
+  --tag-bg:rgba(240,160,80,0.06);--tag-border:rgba(240,160,80,0.15);
+  --red:#d47040;--green:#60a060;--body-bg:#fef5ec;--fp-bg:'f8e8d8';
+}
+[data-theme="minimal"]{
+  --bg:#ffffff;--bg2:#fafafa;--text:#1a1a1a;--panel:rgba(0,0,0,0.01);
+  --border:rgba(0,0,0,0.06);--input-bg:#fafafa;--input-border:#e0e0e0;
+  --muted:#999;--gold:#b8860b;--card:rgba(0,0,0,0.01);
+  --card-border:rgba(0,0,0,0.04);--modal-bg:#fff;--ph-color:#bbb;
+  --tag-bg:#f5f5f5;--tag-border:rgba(0,0,0,0.06);--red:#c0392b;--green:#27ae60;
+  --body-bg:#ffffff;--fp-bg:'f5f5f5';
+}
 [data-theme="warm"]{
   --bg:#1a1410;--bg2:#241e18;--text:#e8dcc8;--panel:rgba(255,255,255,0.03);
   --border:rgba(200,160,100,0.15);--input-bg:rgba(255,255,255,0.04);
@@ -425,8 +457,8 @@ document.addEventListener('dragover',function(e){e.preventDefault()});
 document.addEventListener('drop',function(e){e.preventDefault();var f=e.dataTransfer.files[0];if(!f)return;var ext=f.name.split('.').pop().toLowerCase();if(ext==='xlsx'||ext==='xls'){$('excelFile').files=e.dataTransfer.files;showBatchModal();toast('已识别Excel，点击开始生成')}else if(['jpg','jpeg','png','bmp'].indexOf(ext)>=0){$('bgUpload').files=e.dataTransfer.files;onBgUpload()}});
 
 /* ===== 主题切换 ===== */
-var THEMES=['dark','light','warm','forest'];
-var THEME_LABELS={dark:'🌙 深色',light:'☀ 浅色',warm:'🔥 暖色',forest:'🌿 墨绿'};
+var THEMES=['dark','light','blue','pink','sunset','minimal','warm','forest'];
+var THEME_LABELS={dark:'🌙 深色',light:'☀ 浅色',blue:'💧 蓝调',pink:'🌸 樱粉',sunset:'🌅 日落',minimal:'⬜ 极简',warm:'🔥 暖色',forest:'🌿 墨绿'};
 
 (function(){
   var t=localStorage.getItem('theme')||'dark';
