@@ -97,6 +97,15 @@ body{font-family:"Microsoft YaHei","微软雅黑",sans-serif;background:var(--bo
 @keyframes modalIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
 .modal h3{color:var(--gold);margin-bottom:12px;font-size:15px}
 .sep{border:none;border-top:1px solid var(--border);margin:12px 0}
+@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+@keyframes boxSlideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes coordFlash{0%{background:rgba(212,175,55,0.3)}100%{background:transparent}}
+@keyframes ripple{to{transform:scale(4);opacity:0}}
+.box-card{animation:boxSlideIn .25s ease}
+.skeleton{background:linear-gradient(90deg,var(--panel) 25%,var(--border) 50%,var(--panel) 75%);background-size:800px 100%;animation:shimmer 1.5s infinite}
+.ripple{position:absolute;border-radius:50%;background:rgba(212,175,55,0.4);transform:scale(0);pointer-events:none;width:20px;height:20px;animation:ripple .6s ease-out}
+.flash{animation:coordFlash .4s ease}
+.tag{transition:all .2s ease}
 @media(max-width:768px){.container{flex-direction:column}.panel-left{max-width:100%}}
 </style>
 </head>
@@ -116,7 +125,7 @@ body{font-family:"Microsoft YaHei","微软雅黑",sans-serif;background:var(--bo
 <div class="panel panel-right">
 <div class="sec-title">👁️ 预览</div>
 <div class="tag-row" id="activeTagRow"><span>定位:</span></div>
-<div class="preview-wrap"><div class="preview-box" id="previewArea" onclick="onPreviewClick(event)"><div class="preview-placeholder" id="previewPlaceholder">正在加载预览...</div><img id="previewImg" style="display:none" alt="预览"></div></div>
+<div class="preview-wrap"><div class="preview-box" id="previewArea" onclick="onPreviewClick(event)"><div class="preview-placeholder skeleton" id="previewPlaceholder" style="width:300px;height:200px"></div><img id="previewImg" style="display:none" alt="预览"></div></div>
 <div id="bgSizeInfo" style="font-size:10px;color:#8b949e;text-align:center;margin-top:3px"></div>
 <div class="cstrip" style="margin-top:6px"><span class="lbl" id="coordLabel">选中文本框</span><span class="lbl">X</span><span class="step-group"><span class="step-btn" onclick="stepCoord('x',-1)">−</span><input type="number" id="coordX" value="350" onchange="onCoordInput()"><span class="step-btn" onclick="stepCoord('x',1)">+</span></span><span class="lbl">Y</span><span class="step-group"><span class="step-btn" onclick="stepCoord('y',-1)">−</span><input type="number" id="coordY" value="600" onchange="onCoordInput()"><span class="step-btn" onclick="stepCoord('y',1)">+</span></span></div>
 <div class="cstrip"><span class="lbl">字号</span><span class="step-group"><span class="step-btn" onclick="stepSize(-1)">−</span><input type="number" id="coordSize" value="80" onchange="onSizeInput()"><span class="step-btn" onclick="stepSize(1)">+</span></span></div>
@@ -189,9 +198,10 @@ function refreshPreview(){
   var boxes=readBoxes(),params=boxes.filter(function(b){return b.text&&b.text.trim()}).map(function(b){return't'+b.id+'='+encodeURIComponent(b.text)}).join('&');
   var url='/api/preview?active='+activeId+(params?'&'+params:'')+'&_='+Date.now();
   var img=$('previewImg'),ph=$('previewPlaceholder');
+  ph.classList.add('skeleton');ph.textContent='';
   var loader=new Image();
-  loader.onload=function(){img.src=loader.src;img.style.display='block';ph.style.display='none'};
-  loader.onerror=function(){img.style.display='none';ph.style.display='block';ph.innerHTML='⚠ 加载失败'};
+  loader.onload=function(){img.src=loader.src;img.style.display='block';ph.style.display='none';ph.classList.remove('skeleton')};
+  loader.onerror=function(){img.style.display='none';ph.style.display='block';ph.classList.remove('skeleton');ph.innerHTML='⚠ 加载失败'};
   loader.src=url;
 }
 function onPreviewClick(e){
@@ -199,11 +209,15 @@ function onPreviewClick(e){
   var rect=img.getBoundingClientRect(),scale=origW/img.offsetWidth;
   var rx=Math.round((e.clientX-rect.left)*scale),ry=Math.round((e.clientY-rect.top)*scale);
   $('coordX').value=rx;$('coordY').value=ry;onCoordInput();toast('已定位→('+rx+','+ry+')');
+  // 波纹反馈
+  var rip=document.createElement('span');rip.className='ripple';
+  rip.style.left=(e.clientX-rect.left-10)+'px';rip.style.top=(e.clientY-rect.top-10)+'px';
+  $('previewArea').appendChild(rip);setTimeout(function(){rip.remove()},600);
 }
 
 // 微调
-function stepCoord(a,d){var el=$('coord'+(a||'x').toUpperCase());el.value=Math.max(0,+el.value+d);onCoordInput()}
-function stepSize(d){var el=$('coordSize');el.value=Math.max(6,+el.value+d);onSizeInput()}
+function stepCoord(a,d){var el=$('coord'+(a||'x').toUpperCase());el.value=Math.max(0,+el.value+d);el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');onCoordInput()}
+function stepSize(d){var el=$('coordSize');el.value=Math.max(6,+el.value+d);el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');onSizeInput()}
 function onCoordInput(){applyCoord('coord',['x','y'])}
 function onSizeInput(){applyCoord('size')}
 function applyCoord(type,props){
