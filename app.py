@@ -1,17 +1,45 @@
-import os, io, json, glob, sys, socket, threading, webbrowser
+import os, io, json, glob, sys, socket, threading, webbrowser, logging, time
 from datetime import datetime
 
 from flask import Flask, render_template, request, jsonify, send_file
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 from openpyxl import load_workbook
 
+# ===================== 日志系统 =====================
+LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)) if not getattr(sys, 'frozen', False) else os.path.dirname(sys.executable), "app.log")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler(LOG_FILE, encoding="utf-8"),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger("gaokao")
+
 app = Flask(__name__)
+app.logger.handlers = []  # 禁用 Flask 默认日志
+app.logger.addHandler(logging.StreamHandler(sys.stdout))
+app.logger.setLevel(logging.WARNING)
+
+# 请求日志中间件
+@app.before_request
+def log_request():
+    request._start_time = time.time()
+
+@app.after_request
+def log_response(response):
+    dt = time.time() - getattr(request, '_start_time', time.time())
+    if request.path.startswith("/api/"):
+        logger.info(f"{request.method} {request.path} → {response.status_code} ({dt:.2f}s)")
+    return response
 
 
 @app.errorhandler(Exception)
 def handle_exception(e):
     import traceback
-    return jsonify({"error": str(e), "traceback": traceback.format_exc()}), 500
+    logger.error(f"Unhandled error: {e}\n{traceback.format_exc()}")
+    return jsonify({"error": str(e)}), 500
 
 if getattr(sys, 'frozen', False):
     APP_DIR = os.path.dirname(sys.executable)
@@ -97,8 +125,9 @@ def load_cfg():
             fb = os.path.join(APP_DIR, "template", "bg.jpg")
             if os.path.exists(fb):
                 cfg["bg_path"] = fb
-        _config_cache = cfg
-        return cfg
+    _config_cache = cfg
+    logger.debug("Config loaded from disk")
+    return cfg
     _config_cache = dict(defs)
     return _config_cache
 
@@ -140,6 +169,7 @@ def save_cfg(cfg):
     os.replace(tmp, CONFIG_FILE)
     _config_cache = to_save
     _config_mtime = os.path.getmtime(CONFIG_FILE)
+    logger.debug("Config saved")
 
 
 _font_cache = {}
@@ -398,6 +428,7 @@ def api_generate():
         buf.seek(0)
         with open(save_path, "wb") as f:
             f.write(buf.read())
+        logger.info(f"Generated: {fn}")
         return jsonify({"success": True, "filename": fn, "path": save_path})
     except Exception as e:
         import traceback
@@ -480,6 +511,7 @@ def api_batch():
             results.append({"name": str(row[0]) if row else "?", "success": False, "error": str(e)})
 
     ok = sum(1 for r in results if r["success"])
+    logger.info(f"Batch done: {ok}/{len(results)} files")
     return jsonify({"total": len(results), "success": ok, "results": results})
 
 
@@ -496,6 +528,7 @@ def api_upload_bg():
     cfg = load_cfg()
     cfg["bg_path"] = os.path.join("template", f"bg{ext}")
     save_cfg(cfg)
+    logger.info(f"Background uploaded: bg{ext}")
     return jsonify({"success": True, "filename": f"bg{ext}"})
 
 
@@ -573,6 +606,7 @@ if __name__ == "__main__":
     host = "0.0.0.0"
     port = find_free_port(5000, 5020)
     url = f"http://127.0.0.1:{port}"
+    logger.info(f"Starting server on port {port}")
 
     if not getattr(sys, 'frozen', False):
         app.run(host=host, port=port, debug=True)
