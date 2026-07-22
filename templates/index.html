@@ -140,7 +140,8 @@ function readBoxes(){
     var bid=parseInt(card.id.replace('boxCard_','')),label=qs(card,'.box-header input').value;
     var text=qs(card,'.box-row input[type="text"]').value,nums=qsa(card,'.box-row input[type="number"]');
     var ci=qs(card,'.box-row input[type="color"]');
-    boxes.push({id:bid,label:label,text:text,x:+nums[0].value,y:+nums[1].value,size:+nums[2].value,color:h2r(ci.value),stroke:+nums[3].value});
+    var fs=qs(card,'.box-font');var fp=fs?fs.value:'';
+    boxes.push({id:bid,label:label,text:text,x:+nums[0].value,y:+nums[1].value,size:+nums[2].value,color:h2r(ci.value),stroke:+nums[3].value,font_path:fp});
   });
   return boxes;
 }
@@ -148,7 +149,7 @@ function writeBoxUI(b){var card=$('boxCard_'+b.id);if(!card)return;var ns=qsa(ca
 
 // 文本框渲染
 function renderBoxes(boxes){
-  if(!boxes||!boxes.length)boxes=[{id:1,label:'文本框1',text:'',x:350,y:600,size:60,color:[180,0,0],stroke:0}];
+  if(!boxes||!boxes.length)boxes=[{id:1,label:'文本框1',text:'',x:350,y:600,size:60,color:[180,0,0],stroke:0,font_path:''}];
   var c=$('boxesContainer'),tr=$('activeTagRow');if(!c||!tr)return;
   c.innerHTML='';tr.innerHTML='<span>定位:</span>';
   boxes.forEach(function(b){
@@ -156,7 +157,8 @@ function renderBoxes(boxes){
     card.className='box-card'+(b.id===activeId?' active':'');card.id='boxCard_'+b.id;
     card.innerHTML='<div class="box-header"><input type="text" value="'+esc(b.label)+'" placeholder="标签名" onchange="onBoxChange('+b.id+')"><button class="box-delete" onclick="delBox('+b.id+')">×</button></div>'
       +'<div class="box-row"><span class="lbl">文字</span><input type="text" value="'+esc(b.text)+'" placeholder="输入内容" onchange="onBoxChange('+b.id+')"></div>'
-      +'<div class="box-row"><span class="lbl">X</span><input type="number" value="'+(b.x||0)+'" onchange="onBoxChange('+b.id+')"><span class="lbl">Y</span><input type="number" value="'+(b.y||0)+'" onchange="onBoxChange('+b.id+')"><span class="lbl">大小</span><input type="number" value="'+(b.size||60)+'" onchange="onBoxChange('+b.id+')" style="width:45px"><span class="lbl">描边</span><input type="number" value="'+(b.stroke||0)+'" onchange="onBoxChange('+b.id+')" min="0" max="6" style="width:40px"><input type="color" value="'+hex+'" onchange="onBoxChange('+b.id+')"><button class="box-select'+(b.id===activeId?' on':'')+'" onclick="setActive('+b.id+')">定位</button></div>';
+      +'<div class="box-row"><span class="lbl">X</span><input type="number" value="'+(b.x||0)+'" onchange="onBoxChange('+b.id+')"><span class="lbl">Y</span><input type="number" value="'+(b.y||0)+'" onchange="onBoxChange('+b.id+')"><span class="lbl">大小</span><input type="number" value="'+(b.size||60)+'" onchange="onBoxChange('+b.id+')" style="width:45px"><span class="lbl">描边</span><input type="number" value="'+(b.stroke||0)+'" onchange="onBoxChange('+b.id+')" min="0" max="6" style="width:40px"><input type="color" value="'+hex+'" onchange="onBoxChange('+b.id+')"><button class="box-select'+(b.id===activeId?' on':'')+'" onclick="setActive('+b.id+')">定位</button></div>'
+      +'<div class="box-row"><span class="lbl">字体</span><select onchange="onBoxChange('+b.id+')" class="box-font" data-bid="'+b.id+'" data-font="'+esc(b.font_path||'')+'" style="font-size:10px;max-width:180px"><option value="">(使用全局)</option></select></div>';
     c.appendChild(card);
     var tag=document.createElement('span');tag.className='tag'+(b.id===activeId?' on':'');tag.textContent=b.label||'框'+b.id;
     tag.onclick=(function(i){return function(){setActive(i)}})(b.id);tr.appendChild(tag);
@@ -165,7 +167,7 @@ function renderBoxes(boxes){
 function onBoxChange(id){saveAll();clearTimeout(previewTimer);previewTimer=setTimeout(refreshPreview,150)}
 function addTextBox(){
   var boxes=readBoxes(),maxId=boxes.reduce(function(m,b){return Math.max(m,b.id)},0)+1;
-  boxes.push({id:maxId,label:'文本框'+maxId,text:'',x:400,y:500,size:50,color:[180,0,0],stroke:0});
+  boxes.push({id:maxId,label:'文本框'+maxId,text:'',x:400,y:500,size:50,color:[180,0,0],stroke:0,font_path:''});
   activeId=maxId;renderBoxes(boxes);saveAll(boxes);refreshPreview();
 }
 function delBox(id){
@@ -209,9 +211,10 @@ function resetConfig(){if(!confirm('确定恢复默认配置？'))return;fetch('
 // 字体
 function loadFonts(){fetch('/api/fonts').then(function(r){return r.json()}).then(fillFonts).catch(function(){})}
 function refreshFonts(){toast('扫描字体中...','warn');fetch('/api/fonts?refresh=1').then(function(r){return r.json()}).then(function(f){fillFonts(f);toast('字体已更新')}).catch(function(){})}
-function fillFonts(fonts){var sel=$('fontSelect'),cv=sel.value;sel.innerHTML=fonts.map(function(f){return'<option value="'+f.path+'" data-path="'+encodeURIComponent(f.path)+'">'+f.name+'</option>'}).join('');if(cv)sel.value=cv;loadFontPreview()}
+function fillFonts(fonts){var sel=$('fontSelect'),cv=sel.value;sel.innerHTML=fonts.map(function(f){return'<option value="'+f.path+'" data-path="'+encodeURIComponent(f.path)+'">'+f.name+'</option>'}).join('');if(cv)sel.value=cv;loadFontPreview();populateBoxFonts(fonts)}
+function populateBoxFonts(fonts){var opts=fonts.map(function(f){return'<option value="'+f.path+'">'+f.name+'</option>'}).join('');qsa(document,'.box-font').forEach(function(s){var cv=s.value||s.dataset.font;s.innerHTML='<option value="">(使用全局)</option>'+opts;if(cv){s.value=cv;if(s.selectedIndex<0)s.value=''}})}
 function loadFontPreview(){var sel=$('fontSelect');if(!sel)return;var p=sel.value||'',opt=sel.selectedOptions&&sel.selectedOptions[0],dp=opt?opt.getAttribute('data-path'):'',img=$('fontPreviewImg');if(!img)return;if(p){var bg=getComputedStyle(document.documentElement).getPropertyValue('--fp-bg').replace(/'/g,'').trim()||'1e2430';img.src='/api/font_preview/'+(dp||encodeURIComponent(p))+'?text=金榜题名&size=30&bg='+bg+'&_='+Date.now();img.style.display='block'}else img.style.display='none'}
-function onFontChange(){loadFontPreview();saveAll();setTimeout(refreshPreview,200)}
+function onFontChange(){loadFontPreview();saveAll()}
 
 // 背景
 function loadBgInfo(){fetch('/api/bg_info').then(function(r){return r.json()}).then(function(d){if(d.width){origW=d.width;$('bgInfo').textContent='✅ '+d.filename+' ('+d.width+'×'+d.height+')';$('bgSizeInfo').textContent='原始尺寸: '+d.width+'×'+d.height}refreshPreview()}).catch(function(){refreshPreview()})}

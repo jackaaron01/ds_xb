@@ -31,11 +31,11 @@ CN_FONT_KEYWORDS = [
 ]
 
 DEFAULT_TEXT_BOXES = [
-    {"id": 1, "label": "姓名(大)", "text": "", "x": 350, "y": 600, "size": 80, "color": [180, 0, 0], "stroke": 0},
-    {"id": 2, "label": "姓名(小1)", "text": "", "x": 350, "y": 720, "size": 40, "color": [180, 0, 0], "stroke": 0},
-    {"id": 3, "label": "姓名(小2)", "text": "", "x": 350, "y": 780, "size": 40, "color": [180, 0, 0], "stroke": 0},
-    {"id": 4, "label": "学校", "text": "", "x": 350, "y": 860, "size": 50, "color": [180, 0, 0], "stroke": 0},
-    {"id": 5, "label": "日期", "text": "", "x": 350, "y": 960, "size": 36, "color": [100, 100, 100], "stroke": 0},
+    {"id": 1, "label": "姓名(大)", "text": "", "x": 350, "y": 600, "size": 80, "color": [180, 0, 0], "stroke": 0, "font_path": ""},
+    {"id": 2, "label": "姓名(小1)", "text": "", "x": 350, "y": 720, "size": 40, "color": [180, 0, 0], "stroke": 0, "font_path": ""},
+    {"id": 3, "label": "姓名(小2)", "text": "", "x": 350, "y": 780, "size": 40, "color": [180, 0, 0], "stroke": 0, "font_path": ""},
+    {"id": 4, "label": "学校", "text": "", "x": 350, "y": 860, "size": 50, "color": [180, 0, 0], "stroke": 0, "font_path": ""},
+    {"id": 5, "label": "日期", "text": "", "x": 350, "y": 960, "size": 36, "color": [100, 100, 100], "stroke": 0, "font_path": ""},
 ]
 
 
@@ -96,7 +96,7 @@ def _migrate_old_config(cfg):
                 "id": bid, "label": label, "text": "",
                 "x": item.get("x", 350), "y": item.get("y", 600 + bid * 50),
                 "size": item.get("size", 60), "color": dc if key == "date" else tc,
-                "stroke": 0
+                "stroke": 0, "font_path": ""
             })
             bid += 1
     return boxes if boxes else [dict(b) for b in DEFAULT_TEXT_BOXES]
@@ -118,10 +118,10 @@ def save_cfg(cfg):
     os.replace(tmp, CONFIG_FILE)
 
 
-def resolve_font(size, cfg=None):
+def resolve_font(size, cfg=None, font_path=None):
     if cfg is None:
         cfg = load_cfg()
-    fp = cfg.get("font_path", "")
+    fp = font_path or cfg.get("font_path", "")
     if fp and os.path.exists(fp):
         try:
             return ImageFont.truetype(fp, size)
@@ -170,7 +170,7 @@ def draw_card(img, boxes, stroke=None):
         x = box.get("x", 300)
         y = box.get("y", 500)
         color = tuple(box.get("color", [180, 0, 0]))
-        font = resolve_font(size, cfg)
+        font = resolve_font(size, cfg, box.get("font_path", None))
         bbox = draw.textbbox((0, 0), text, font=font)
         tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
         bs = box.get("stroke", stroke if stroke is not None else cfg.get("stroke_width", 0))
@@ -278,7 +278,7 @@ def api_preview():
         ss = max(6, int(box.get("size", 60) * scale))
         color = tuple(box.get("color", [180, 0, 0]))
         try:
-            font = resolve_font(ss, cfg)
+            font = resolve_font(ss, cfg, box.get("font_path", None))
         except Exception:
             font = ImageFont.load_default()
         bbox = draw_rz.textbbox((0, 0), text, font=font)
