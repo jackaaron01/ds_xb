@@ -79,8 +79,6 @@ body{font-family:"Microsoft YaHei","微软雅黑",sans-serif;background:var(--bo
 .form-row input,.form-row select{width:100%;padding:7px 10px;border:1px solid var(--input-border);border-radius:6px;background:var(--input-bg);color:var(--text);font-size:13px;outline:none}
 .form-row input:focus,.form-row select:focus{border-color:var(--gold)}
 .form-row select option{background:var(--modal-bg);color:var(--text)}
-.font-preview{text-align:center;margin-top:4px;min-height:34px}
-.font-preview img{max-width:100%;border-radius:4px;opacity:.9}
 .toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);padding:8px 18px;border-radius:7px;font-size:13px;z-index:9999;opacity:0;transition:opacity .2s;pointer-events:none;background:var(--green);color:#fff;box-shadow:0 3px 12px rgba(0,0,0,0.4)}
 .toast.show{opacity:1}.toast.error{background:var(--red)}.toast.warn{background:#d29922}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center}
@@ -99,7 +97,6 @@ body{font-family:"Microsoft YaHei","微软雅黑",sans-serif;background:var(--bo
 <div id="boxesContainer"></div>
 <hr class="sep">
 <div class="sec-title">🎨 全局设置</div>
-<div class="form-row"><label>字体 <span style="cursor:pointer;font-size:10px;color:#8b949e" onclick="refreshFonts()">⟳ 刷新</span></label><select id="fontSelect" onchange="onFontChange()"></select><div class="font-preview"><img id="fontPreviewImg"></div></div>
 <hr class="sep">
 <div class="form-row"><label>输出尺寸</label><select id="outputSize" onchange="saveAll()"><option value="original">原始尺寸</option><option value="1080x1440">朋友圈(1080×1440)</option><option value="900x383">公众号封面(900×383)</option><option value="2480x3508">A4打印(2480×3508)</option></select></div>
 <div class="form-row"><label>输出格式</label><select id="outputFormat" onchange="saveAll()"><option value="png">PNG</option><option value="jpg">JPG</option></select></div>
@@ -204,18 +201,14 @@ function onCoordInput(){var box=readBoxes().filter(function(b){return b.id===act
 function onSizeInput(){var box=readBoxes().filter(function(b){return b.id===activeId})[0];if(!box)return;box.size=+$('coordSize').value;writeBoxUI(box);saveAll();clearTimeout(previewTimer);previewTimer=setTimeout(refreshPreview,150)}
 
 // 配置
-function saveAll(boxes){var b=boxes||readBoxes();fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text_boxes:b,output_size:$('outputSize').value,output_format:$('outputFormat').value,font_path:$('fontSelect').value})})}
-function loadConfig(){return fetch('/api/config').then(function(r){return r.json()}).then(function(cfg){$('outputSize').value=cfg.output_size||'original';$('outputFormat').value=cfg.output_format||'png';var fs=$('fontSelect');if(cfg.font_path&&fs)fs.value=cfg.font_path;loadFontPreview();if(cfg.bg_exists){loadBgInfo()}else{var bi=$('bgInfo');if(bi)bi.textContent='⚠ 请上传背景图'}renderBoxes(cfg.text_boxes||[]);refreshPreview()}).catch(function(e){console.error(e)})}
+function saveAll(boxes){var b=boxes||readBoxes();fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text_boxes:b,output_size:$('outputSize').value,output_format:$('outputFormat').value})})}
+function loadConfig(){return fetch('/api/config').then(function(r){return r.json()}).then(function(cfg){$('outputSize').value=cfg.output_size||'original';$('outputFormat').value=cfg.output_format||'png';if(cfg.bg_exists){loadBgInfo()}else{var bi=$('bgInfo');if(bi)bi.textContent='⚠ 请上传背景图'}renderBoxes(cfg.text_boxes||[]);populateBoxFonts();refreshPreview()}).catch(function(e){console.error(e)})}
 function resetConfig(){if(!confirm('确定恢复默认配置？'))return;fetch('/api/config/reset',{method:'POST'}).then(function(){loadConfig().then(function(){refreshPreview()})})}
 
 // 字体
-function loadFonts(){fetch('/api/fonts').then(function(r){return r.json()}).then(fillFonts).catch(function(){})}
-function refreshFonts(){toast('扫描字体中...','warn');fetch('/api/fonts?refresh=1').then(function(r){return r.json()}).then(function(f){fillFonts(f);toast('字体已更新')}).catch(function(){})}
-function fillFonts(fonts){var sel=$('fontSelect'),cv=sel.value;sel.innerHTML=fonts.map(function(f){return'<option value="'+f.path+'" data-path="'+encodeURIComponent(f.path)+'">'+f.name+'</option>'}).join('');if(cv)sel.value=cv;loadFontPreview();populateBoxFonts(fonts)}
-function populateBoxFonts(fonts){var opts=fonts.map(function(f){return'<option value="'+f.path+'">'+f.name+'</option>'}).join('');qsa(document,'.box-font').forEach(function(s){var cv=s.value||s.dataset.font;s.innerHTML='<option value="">(使用全局)</option>'+opts;if(cv){s.value=cv;if(s.selectedIndex<0)s.value=''}})}
-function loadFontPreview(){var sel=$('fontSelect');if(!sel)return;var p=sel.value||'',opt=sel.selectedOptions&&sel.selectedOptions[0],dp=opt?opt.getAttribute('data-path'):'',img=$('fontPreviewImg');if(!img)return;if(p){var bg=getComputedStyle(document.documentElement).getPropertyValue('--fp-bg').replace(/'/g,'').trim()||'1e2430';img.src='/api/font_preview/'+(dp||encodeURIComponent(p))+'?text=金榜题名&size=30&bg='+bg+'&_='+Date.now();img.style.display='block'}else img.style.display='none'}
-function onFontChange(){loadFontPreview();saveAll()}
-
+var _fontsCache=null;
+function populateBoxFonts(cb){var opts;_loadOrFetch(function(fonts){opts=fonts.map(function(f){return'<option value="'+f.path+'">'+f.name+'</option>'}).join('');qsa(document,'.box-font').forEach(function(s){var cv=s.value||s.dataset.font;s.innerHTML='<option value="">(使用全局)</option>'+opts;if(cv){s.value=cv;if(s.selectedIndex<0)s.value=''}});if(cb)cb()})}
+function _loadOrFetch(cb){if(_fontsCache){cb(_fontsCache);return}fetch('/api/fonts').then(function(r){return r.json()}).then(function(f){_fontsCache=f;cb(f)}).catch(function(){})}
 // 背景
 function loadBgInfo(){fetch('/api/bg_info').then(function(r){return r.json()}).then(function(d){if(d.width){origW=d.width;$('bgInfo').textContent='✅ '+d.filename+' ('+d.width+'×'+d.height+')';$('bgSizeInfo').textContent='原始尺寸: '+d.width+'×'+d.height}refreshPreview()}).catch(function(){refreshPreview()})}
 function onBgUpload(){var f=$('bgUpload').files[0];if(!f)return;var fd=new FormData();fd.append('file',f);toast('上传中...','warn');fetch('/api/upload_bg',{method:'POST',body:fd}).then(function(r){return r.json()}).then(function(d){if(d.success){toast('背景已更新');loadBgInfo();saveAll()}else toast(d.error||'失败','error')}).catch(function(){toast('上传失败','error')})}
@@ -238,11 +231,11 @@ document.addEventListener('drop',function(e){e.preventDefault();var f=e.dataTran
 // 主题
 var THEMES=['dark','light','blue','pink','sunset','minimal','warm','forest'],THEME_LABELS={dark:'🌙 深色',light:'☀ 浅色',blue:'💧 蓝调',pink:'🌸 樱粉',sunset:'🌅 日落',minimal:'⬜ 极简',warm:'🔥 暖色',forest:'🌿 墨绿'};
 (function(){var t=localStorage.getItem('theme')||'dark';if(THEMES.indexOf(t)<0)t='dark';document.documentElement.setAttribute('data-theme',t);$('themeBtn').textContent=THEME_LABELS[t]})();
-function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=THEMES[(THEMES.indexOf(c)+1)%THEMES.length];document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);$('themeBtn').textContent=THEME_LABELS[n];loadFontPreview()}
+function toggleTheme(){var c=document.documentElement.getAttribute('data-theme'),n=THEMES[(THEMES.indexOf(c)+1)%THEMES.length];document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);$('themeBtn').textContent=THEME_LABELS[n]}
 
 // 初始化
 fetch('/api/getip').then(function(r){return r.json()}).then(function(d){$('ipDisplay').textContent='🌐 http://127.0.0.1:5000'+(d.ip!=='127.0.0.1'?'  |  局域网: http://'+d.ip+':5000':'')}).catch(function(){});
-loadFonts();loadConfig();
+loadConfig();
 </script>
 </body>
 </html>
