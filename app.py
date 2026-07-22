@@ -7,6 +7,12 @@ from openpyxl import load_workbook
 
 app = Flask(__name__)
 
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    import traceback
+    return jsonify({"error": str(e), "traceback": traceback.format_exc()}), 500
+
 if getattr(sys, 'frozen', False):
     APP_DIR = os.path.dirname(sys.executable)
 else:
@@ -39,7 +45,20 @@ DEFAULT_TEXT_BOXES = [
 ]
 
 
+_config_cache = None
+_config_mtime = 0
+
 def load_cfg():
+    global _config_cache, _config_mtime
+    if os.path.exists(CONFIG_FILE):
+        mtime = os.path.getmtime(CONFIG_FILE)
+        if _config_cache is not None and mtime == _config_mtime:
+            return _config_cache
+        _config_mtime = mtime
+    else:
+        _config_cache = None
+        _config_mtime = 0
+
     defs = {
         "bg_path": os.path.join(APP_DIR, "template", "bg.jpg"),
         "output_dir": OUTPUT_DIR,
@@ -78,8 +97,10 @@ def load_cfg():
             fb = os.path.join(APP_DIR, "template", "bg.jpg")
             if os.path.exists(fb):
                 cfg["bg_path"] = fb
+        _config_cache = cfg
         return cfg
-    return dict(defs)
+    _config_cache = dict(defs)
+    return _config_cache
 
 
 def _migrate_old_config(cfg):
@@ -103,6 +124,7 @@ def _migrate_old_config(cfg):
 
 
 def save_cfg(cfg):
+    global _config_cache, _config_mtime
     to_save = dict(cfg)
     for key in ["bg_path", "output_dir"]:
         val = to_save.get(key, "")
@@ -116,15 +138,24 @@ def save_cfg(cfg):
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(to_save, f, ensure_ascii=False, indent=2)
     os.replace(tmp, CONFIG_FILE)
+    _config_cache = to_save
+    _config_mtime = os.path.getmtime(CONFIG_FILE)
 
+
+_font_cache = {}
 
 def resolve_font(size, cfg=None, font_path=None):
     if cfg is None:
         cfg = load_cfg()
     fp = font_path or cfg.get("font_path", "")
+    key = (fp, size)
+    if key in _font_cache:
+        return _font_cache[key]
     if fp and os.path.exists(fp):
         try:
-            return ImageFont.truetype(fp, size)
+            font = ImageFont.truetype(fp, size)
+            _font_cache[key] = font
+            return font
         except Exception:
             pass
     candidates = [os.path.join(FONT_DIR, f) for f in
@@ -133,10 +164,14 @@ def resolve_font(size, cfg=None, font_path=None):
     for p in candidates:
         if os.path.exists(p):
             try:
-                return ImageFont.truetype(p, size)
+                font = ImageFont.truetype(p, size)
+                _font_cache[key] = font
+                return font
             except Exception:
                 pass
-    return ImageFont.load_default()
+    font = ImageFont.load_default()
+    _font_cache[key] = font
+    return font
 
 
 def draw_text(draw, pos, text, font, fill, stroke):
