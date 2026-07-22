@@ -104,7 +104,7 @@ body{font-family:"Microsoft YaHei","微软雅黑",sans-serif;background:var(--bo
 <div class="header"><h1>🎓 高考喜报自动生成系统 v3</h1><button class="theme-btn" onclick="toggleTheme()" id="themeBtn">🌙 深色</button><br><div class="ip" id="ipDisplay">获取中...</div></div>
 <div class="container">
 <div class="panel panel-left">
-<div class="sec-title">📝 文本框 <button class="btn btn-green" onclick="addTextBox()" style="margin-left:auto;padding:3px 12px;font-size:11px">+ 添加</button></div>
+<div class="sec-title">📝 文本框 <button class="btn btn-green" onclick="addTextBox()" style="margin-left:auto;padding:3px 12px;font-size:11px">+ 添加</button><button class="btn btn-outline" onclick="refreshFontList()" style="padding:3px 8px;font-size:10px" title="刷新字体列表">⟳</button></div>
 <div id="boxesContainer"></div>
 <hr class="sep">
 <div class="form-row"><label>输出尺寸</label><select id="outputSize" onchange="saveAll()"><option value="original">原始尺寸</option><option value="1080x1440">朋友圈(1080×1440)</option><option value="900x383">公众号封面(900×383)</option><option value="2480x3508">A4打印(2480×3508)</option></select></div>
@@ -172,12 +172,12 @@ function onBoxChange(id){saveAll();clearTimeout(previewTimer);previewTimer=setTi
 function addTextBox(){
   var boxes=readBoxes(),maxId=boxes.reduce(function(m,b){return Math.max(m,b.id)},0)+1;
   boxes.push({id:maxId,label:'文本框'+maxId,text:'',x:400,y:500,size:50,color:[180,0,0],stroke:0,font_path:''});
-  activeId=maxId;renderBoxes(boxes);saveAll(boxes);refreshPreview();
+  activeId=maxId;renderBoxes(boxes);saveAll(boxes);refreshPreview();populateBoxFonts();
 }
 function delBox(id){
   var boxes=readBoxes();if(boxes.length<=1){toast('至少保留一个文本框','warn');return}
   boxes=boxes.filter(function(b){return b.id!==id});if(activeId===id)activeId=boxes[0].id;
-  renderBoxes(boxes);saveAll(boxes);refreshPreview();
+  renderBoxes(boxes);saveAll(boxes);refreshPreview();populateBoxFonts();
 }
 
 // 定位
@@ -222,6 +222,7 @@ function resetConfig(){if(!confirm('确定恢复默认配置？'))return;fetch('
 var _fontsCache=null;
 function populateBoxFonts(cb){var opts;_loadOrFetch(function(fonts){opts=fonts.map(function(f){return'<option value="'+f.path+'">'+f.name+'</option>'}).join('');qsa(document,'.box-font').forEach(function(s){var cv=s.value||s.dataset.font;s.innerHTML='<option value="">(使用全局)</option>'+opts;if(cv){s.value=cv;if(s.selectedIndex<0)s.value=''}});if(cb)cb()})}
 function _loadOrFetch(cb){if(_fontsCache){cb(_fontsCache);return}fetch('/api/fonts').then(function(r){return r.json()}).then(function(f){_fontsCache=f;cb(f)}).catch(function(){})}
+function refreshFontList(){_fontsCache=null;populateBoxFonts(function(){toast('字体列表已刷新')})}
 // 背景
 function loadBgInfo(){fetch('/api/bg_info').then(function(r){return r.json()}).then(function(d){if(d.width){origW=d.width;$('bgInfo').textContent='✅ '+d.filename+' ('+d.width+'×'+d.height+')';$('bgSizeInfo').textContent='原始尺寸: '+d.width+'×'+d.height}refreshPreview()}).catch(function(){refreshPreview()})}
 function onBgUpload(){var f=$('bgUpload').files[0];if(!f)return;var fd=new FormData();fd.append('file',f);toast('上传中...','warn');fetch('/api/upload_bg',{method:'POST',body:fd}).then(function(r){return r.json()}).then(function(d){if(d.success){toast('背景已更新');loadBgInfo();saveAll()}else toast(d.error||'失败','error')}).catch(function(){toast('上传失败','error')})}
