@@ -31,11 +31,11 @@ CN_FONT_KEYWORDS = [
 ]
 
 DEFAULT_TEXT_BOXES = [
-    {"id": 1, "label": "姓名(大)", "text": "", "x": 350, "y": 600, "size": 80, "color": [180, 0, 0]},
-    {"id": 2, "label": "姓名(小1)", "text": "", "x": 350, "y": 720, "size": 40, "color": [180, 0, 0]},
-    {"id": 3, "label": "姓名(小2)", "text": "", "x": 350, "y": 780, "size": 40, "color": [180, 0, 0]},
-    {"id": 4, "label": "学校", "text": "", "x": 350, "y": 860, "size": 50, "color": [180, 0, 0]},
-    {"id": 5, "label": "日期", "text": "", "x": 350, "y": 960, "size": 36, "color": [100, 100, 100]},
+    {"id": 1, "label": "姓名(大)", "text": "", "x": 350, "y": 600, "size": 80, "color": [180, 0, 0], "stroke": 0},
+    {"id": 2, "label": "姓名(小1)", "text": "", "x": 350, "y": 720, "size": 40, "color": [180, 0, 0], "stroke": 0},
+    {"id": 3, "label": "姓名(小2)", "text": "", "x": 350, "y": 780, "size": 40, "color": [180, 0, 0], "stroke": 0},
+    {"id": 4, "label": "学校", "text": "", "x": 350, "y": 860, "size": 50, "color": [180, 0, 0], "stroke": 0},
+    {"id": 5, "label": "日期", "text": "", "x": 350, "y": 960, "size": 36, "color": [100, 100, 100], "stroke": 0},
 ]
 
 
@@ -95,7 +95,8 @@ def _migrate_old_config(cfg):
             boxes.append({
                 "id": bid, "label": label, "text": "",
                 "x": item.get("x", 350), "y": item.get("y", 600 + bid * 50),
-                "size": item.get("size", 60), "color": dc if key == "date" else tc
+                "size": item.get("size", 60), "color": dc if key == "date" else tc,
+                "stroke": 0
             })
             bid += 1
     return boxes if boxes else [dict(b) for b in DEFAULT_TEXT_BOXES]
@@ -158,7 +159,7 @@ def draw_text(draw, pos, text, font, fill, stroke):
             draw.text((x + ox, y + oy), text, font=font, fill=fill)
 
 
-def draw_card(img, boxes, stroke):
+def draw_card(img, boxes, stroke=None):
     draw = ImageDraw.Draw(img)
     cfg = load_cfg()
     for box in boxes:
@@ -172,7 +173,8 @@ def draw_card(img, boxes, stroke):
         font = resolve_font(size, cfg)
         bbox = draw.textbbox((0, 0), text, font=font)
         tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
-        draw_text(draw, (x - tw // 2, y - th // 2), text, font, color, stroke)
+        bs = box.get("stroke", stroke if stroke is not None else cfg.get("stroke_width", 0))
+        draw_text(draw, (x - tw // 2, y - th // 2), text, font, color, bs)
 
 
 # ===================== API 路由 =====================
@@ -260,7 +262,6 @@ def api_preview():
             box["text"] = request.args.get(qk, "")
 
     active_id = request.args.get("active", "1", type=int)
-    stroke = cfg.get("stroke_width", 0)
 
     img = Image.open(bg).convert("RGB")
     w, h = img.size
@@ -283,7 +284,8 @@ def api_preview():
         bbox = draw_rz.textbbox((0, 0), text, font=font)
         tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
         sx, sy = int(box["x"] * scale), int(box["y"] * scale)
-        draw_text(draw_rz, (sx - tw // 2, sy - th // 2), text, font, color, max(0, int(stroke * scale)))
+        bs = max(0, int(box.get("stroke", 0) * scale))
+        draw_text(draw_rz, (sx - tw // 2, sy - th // 2), text, font, color, bs)
 
     overlay = Image.new("RGBA", (nw, nh), (0, 0, 0, 0))
     odraw = ImageDraw.Draw(overlay)
