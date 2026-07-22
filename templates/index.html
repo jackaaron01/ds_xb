@@ -6,21 +6,21 @@
 <title>高考喜报自动生成系统 v3</title>
 <style>
 :root{
-  --bg:#0d1117;--bg2:#161b22;--text:#e6edf3;--panel:rgba(255,255,255,0.03);
+  --bg:#0d1117;--text:#e6edf3;--panel:rgba(255,255,255,0.03);
   --border:rgba(255,255,255,0.07);--input-bg:rgba(255,255,255,0.04);
   --input-border:rgba(255,255,255,0.1);--muted:#8b949e;--gold:#d4af37;
   --card:rgba(255,255,255,0.02);--card-border:rgba(255,255,255,0.06);
   --modal-bg:#161b22;--ph-color:#484f58;--tag-bg:rgba(255,255,255,0.02);
   --tag-border:rgba(255,255,255,0.08);--red:#da3633;--green:#238636;
-  --body-bg:linear-gradient(160deg,#0d1117,#161b22 40%,#0d1117);--fp-bg:'1e2430';
+  --body-bg:linear-gradient(160deg,#0d1117,#161b22 40%,#0d1117);
 }
-[data-theme="light"]{--bg:#f5f5f5;--bg2:#fff;--text:#333;--panel:rgba(0,0,0,0.02);--border:rgba(0,0,0,0.08);--input-bg:#fff;--input-border:#ccc;--muted:#888;--card:rgba(0,0,0,0.01);--card-border:rgba(0,0,0,0.06);--modal-bg:#fff;--ph-color:#aaa;--tag-bg:rgba(0,0,0,0.03);--tag-border:rgba(0,0,0,0.1);--body-bg:#f0f2f5;--fp-bg:'e8e8e8'}
-[data-theme="blue"]{--bg:#eef4fb;--bg2:#fff;--text:#2c3e50;--panel:rgba(0,0,0,0.02);--border:rgba(66,133,244,0.15);--input-bg:#fff;--input-border:#c8daf8;--muted:#6b8299;--gold:#4285f4;--card:rgba(66,133,244,0.03);--card-border:rgba(66,133,244,0.1);--modal-bg:#fff;--ph-color:#a0b8d0;--tag-bg:rgba(66,133,244,0.05);--tag-border:rgba(66,133,244,0.15);--red:#e74c3c;--green:#27ae60;--body-bg:#e8eff8;--fp-bg:'dce8f4'}
-[data-theme="pink"]{--bg:#fef5f7;--bg2:#fff;--text:#4a3040;--panel:rgba(0,0,0,0.02);--border:rgba(233,150,170,0.2);--input-bg:#fff;--input-border:#f0c8d8;--muted:#a08090;--gold:#e87890;--card:rgba(233,150,170,0.04);--card-border:rgba(233,150,170,0.12);--modal-bg:#fff;--ph-color:#c8a0b0;--tag-bg:rgba(233,150,170,0.06);--tag-border:rgba(233,150,170,0.15);--red:#d44a6a;--green:#50a070;--body-bg:#fdf0f3;--fp-bg:'f4e0e8'}
-[data-theme="sunset"]{--bg:#fff8f0;--bg2:#fff;--text:#4a3a2a;--panel:rgba(0,0,0,0.02);--border:rgba(240,160,80,0.2);--input-bg:#fff;--input-border:#f0c898;--muted:#a09078;--gold:#e89850;--card:rgba(240,160,80,0.04);--card-border:rgba(240,160,80,0.12);--modal-bg:#fff;--ph-color:#c8a880;--tag-bg:rgba(240,160,80,0.06);--tag-border:rgba(240,160,80,0.15);--red:#d47040;--green:#60a060;--body-bg:#fef5ec;--fp-bg:'f8e8d8'}
-[data-theme="minimal"]{--bg:#ffffff;--bg2:#fafafa;--text:#1a1a1a;--panel:rgba(0,0,0,0.01);--border:rgba(0,0,0,0.06);--input-bg:#fafafa;--input-border:#e0e0e0;--muted:#999;--gold:#b8860b;--card:rgba(0,0,0,0.01);--card-border:rgba(0,0,0,0.04);--modal-bg:#fff;--ph-color:#bbb;--tag-bg:#f5f5f5;--tag-border:rgba(0,0,0,0.06);--red:#c0392b;--green:#27ae60;--body-bg:#ffffff;--fp-bg:'f5f5f5'}
-[data-theme="warm"]{--bg:#1a1410;--bg2:#241e18;--text:#e8dcc8;--panel:rgba(255,255,255,0.03);--border:rgba(200,160,100,0.15);--input-bg:rgba(255,255,255,0.04);--input-border:rgba(200,160,100,0.2);--muted:#a09080;--gold:#e8b860;--card:rgba(255,255,255,0.02);--card-border:rgba(200,160,100,0.1);--modal-bg:#1a1510;--ph-color:#6a5a4a;--tag-bg:rgba(255,255,255,0.02);--tag-border:rgba(200,160,100,0.12);--red:#d47a60;--green:#6a9a50;--body-bg:linear-gradient(160deg,#1a1410,#241e18 40%,#1a1410);--fp-bg:'1e1812'}
-[data-theme="forest"]{--bg:#0d1612;--bg2:#152218;--text:#c8dcc8;--panel:rgba(255,255,255,0.03);--border:rgba(100,180,100,0.15);--input-bg:rgba(255,255,255,0.04);--input-border:rgba(100,180,100,0.2);--muted:#809880;--gold:#88d488;--card:rgba(255,255,255,0.02);--card-border:rgba(100,180,100,0.1);--modal-bg:#101a14;--ph-color:#4a6a4a;--tag-bg:rgba(255,255,255,0.02);--tag-border:rgba(100,180,100,0.12);--red:#d47070;--green:#509a50;--body-bg:linear-gradient(160deg,#0d1612,#152218 40%,#0d1612);--fp-bg:'121c16'}
+[data-theme="light"]{--bg:#f5f5f5;--text:#333;--panel:rgba(0,0,0,0.02);--border:rgba(0,0,0,0.08);--input-bg:#fff;--input-border:#ccc;--muted:#888;--card:rgba(0,0,0,0.01);--card-border:rgba(0,0,0,0.06);--modal-bg:#fff;--ph-color:#aaa;--tag-bg:rgba(0,0,0,0.03);--tag-border:rgba(0,0,0,0.1);--body-bg:#f0f2f5}
+[data-theme="blue"]{--bg:#eef4fb;--text:#2c3e50;--panel:rgba(0,0,0,0.02);--border:rgba(66,133,244,0.15);--input-bg:#fff;--input-border:#c8daf8;--muted:#6b8299;--gold:#4285f4;--card:rgba(66,133,244,0.03);--card-border:rgba(66,133,244,0.1);--modal-bg:#fff;--ph-color:#a0b8d0;--tag-bg:rgba(66,133,244,0.05);--tag-border:rgba(66,133,244,0.15);--body-bg:#e8eff8}
+[data-theme="pink"]{--bg:#fef5f7;--text:#4a3040;--panel:rgba(0,0,0,0.02);--border:rgba(233,150,170,0.2);--input-bg:#fff;--input-border:#f0c8d8;--muted:#a08090;--gold:#e87890;--card:rgba(233,150,170,0.04);--card-border:rgba(233,150,170,0.12);--modal-bg:#fff;--ph-color:#c8a0b0;--tag-bg:rgba(233,150,170,0.06);--tag-border:rgba(233,150,170,0.15);--body-bg:#fdf0f3}
+[data-theme="sunset"]{--bg:#fff8f0;--text:#4a3a2a;--panel:rgba(0,0,0,0.02);--border:rgba(240,160,80,0.2);--input-bg:#fff;--input-border:#f0c898;--muted:#a09078;--gold:#e89850;--card:rgba(240,160,80,0.04);--card-border:rgba(240,160,80,0.12);--modal-bg:#fff;--ph-color:#c8a880;--tag-bg:rgba(240,160,80,0.06);--tag-border:rgba(240,160,80,0.15);--body-bg:#fef5ec}
+[data-theme="minimal"]{--bg:#ffffff;--text:#1a1a1a;--panel:rgba(0,0,0,0.01);--border:rgba(0,0,0,0.06);--input-bg:#fafafa;--input-border:#e0e0e0;--muted:#999;--card:rgba(0,0,0,0.01);--card-border:rgba(0,0,0,0.04);--modal-bg:#fff;--ph-color:#bbb;--tag-bg:#f5f5f5;--tag-border:rgba(0,0,0,0.06);--body-bg:#ffffff}
+[data-theme="warm"]{--bg:#1a1410;--text:#e8dcc8;--panel:rgba(255,255,255,0.03);--border:rgba(200,160,100,0.15);--input-bg:rgba(255,255,255,0.04);--input-border:rgba(200,160,100,0.2);--muted:#a09080;--gold:#e8b860;--card:rgba(255,255,255,0.02);--card-border:rgba(200,160,100,0.1);--modal-bg:#1a1510;--ph-color:#6a5a4a;--tag-bg:rgba(255,255,255,0.02);--tag-border:rgba(200,160,100,0.12);--body-bg:linear-gradient(160deg,#1a1410,#241e18 40%,#1a1410)}
+[data-theme="forest"]{--bg:#0d1612;--text:#c8dcc8;--panel:rgba(255,255,255,0.03);--border:rgba(100,180,100,0.15);--input-bg:rgba(255,255,255,0.04);--input-border:rgba(100,180,100,0.2);--muted:#809880;--gold:#88d488;--card:rgba(255,255,255,0.02);--card-border:rgba(100,180,100,0.1);--modal-bg:#101a14;--ph-color:#4a6a4a;--tag-bg:rgba(255,255,255,0.02);--tag-border:rgba(100,180,100,0.12);--body-bg:linear-gradient(160deg,#0d1612,#152218 40%,#0d1612)}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:"Microsoft YaHei","微软雅黑",sans-serif;background:var(--body-bg);color:var(--text);min-height:100vh;font-size:14px}
 .header{background:var(--panel);border-bottom:1px solid rgba(212,175,55,0.2);padding:14px 20px;text-align:center;position:relative}
@@ -42,13 +42,15 @@ body{font-family:"Microsoft YaHei","微软雅黑",sans-serif;background:var(--bo
 .box-delete:hover{background:rgba(218,54,51,0.1)}
 .box-row{display:flex;gap:6px;align-items:center;margin-bottom:4px;flex-wrap:wrap}
 .box-row .lbl{font-size:10px;color:var(--muted);min-width:24px}
-.box-row input[type="text"]{flex:1;min-width:80px;padding:5px 7px;border:1px solid var(--input-border);border-radius:4px;background:var(--input-bg);color:var(--text);font-size:12px;outline:none}
-.box-row input[type="text"]:focus{border-color:var(--gold)}
-.box-row input[type="number"]{width:55px;padding:4px 5px;text-align:center;border:1px solid var(--input-border);border-radius:4px;background:var(--input-bg);color:var(--text);font-size:12px;outline:none}
-.box-row input[type="number"]:focus{border-color:var(--gold)}
+.box-row input[type="text"],.box-row input[type="number"]{padding:4px 5px;border:1px solid var(--input-border);border-radius:4px;background:var(--input-bg);color:var(--text);font-size:12px;outline:none}
+.box-row input[type="text"]{flex:1;min-width:80px;padding:5px 7px}
+.box-row input[type="number"]{width:55px;text-align:center}
+.box-row input:focus{border-color:var(--gold)}
 .box-row input[type="color"]{width:26px;height:26px;border:none;padding:0;cursor:pointer;border-radius:4px;background:transparent}
 .box-select{padding:3px 8px;border:1px solid var(--input-border);border-radius:4px;background:var(--tag-bg);color:var(--muted);font-size:11px;cursor:pointer}
 .box-select.on{border-color:var(--gold);color:var(--gold);background:rgba(212,175,55,0.08)}
+.box-font{font-size:10px;max-width:180px;padding:3px 4px;border:1px solid var(--input-border);border-radius:4px;background:var(--input-bg);color:var(--text);outline:none}
+.box-font:focus{border-color:var(--gold)}
 .btn{padding:8px 16px;border:none;border-radius:7px;font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit;font-weight:500}
 .btn-gold{background:linear-gradient(135deg,var(--gold),#b8860b);color:#fff;font-size:14px;padding:10px 24px}
 .btn-gold:hover{transform:translateY(-1px);box-shadow:0 3px 14px rgba(212,175,55,0.25)}
@@ -96,8 +98,6 @@ body{font-family:"Microsoft YaHei","微软雅黑",sans-serif;background:var(--bo
 <div class="sec-title">📝 文本框 <button class="btn btn-green" onclick="addTextBox()" style="margin-left:auto;padding:3px 12px;font-size:11px">+ 添加</button></div>
 <div id="boxesContainer"></div>
 <hr class="sep">
-<div class="sec-title">🎨 全局设置</div>
-<hr class="sep">
 <div class="form-row"><label>输出尺寸</label><select id="outputSize" onchange="saveAll()"><option value="original">原始尺寸</option><option value="1080x1440">朋友圈(1080×1440)</option><option value="900x383">公众号封面(900×383)</option><option value="2480x3508">A4打印(2480×3508)</option></select></div>
 <div class="form-row"><label>输出格式</label><select id="outputFormat" onchange="saveAll()"><option value="png">PNG</option><option value="jpg">JPG</option></select></div>
 <div class="form-row"><input type="file" id="bgUpload" accept="image/*" onchange="onBgUpload()"></div>
@@ -123,7 +123,6 @@ body{font-family:"Microsoft YaHei","微软雅黑",sans-serif;background:var(--bo
 var activeId=1,origW=1055,lastFile='',previewTimer=null;
 
 function $(id){return document.getElementById(id)}
-function qs(e,s){return e.querySelector(s)}
 function qsa(e,s){return e.querySelectorAll(s)}
 function h2r(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]}
 function r2h(r){return'#'+r[0].toString(16).padStart(2,'0')+r[1].toString(16).padStart(2,'0')+r[2].toString(16).padStart(2,'0')}
@@ -134,11 +133,10 @@ function toast(m,c){var t=$('toast');t.textContent=m;t.className='toast '+(c||''
 function readBoxes(){
   var cards=qsa($('boxesContainer'),'.box-card'),boxes=[];
   cards.forEach(function(card){
-    var bid=parseInt(card.id.replace('boxCard_','')),label=qs(card,'.box-header input').value;
-    var text=qs(card,'.box-row input[type="text"]').value,nums=qsa(card,'.box-row input[type="number"]');
-    var ci=qs(card,'.box-row input[type="color"]');
-    var fs=qs(card,'.box-font');var fp=fs?fs.value:'';
-    boxes.push({id:bid,label:label,text:text,x:+nums[0].value,y:+nums[1].value,size:+nums[2].value,color:h2r(ci.value),stroke:+nums[3].value,font_path:fp});
+    var bid=parseInt(card.id.replace('boxCard_','')),label=card.querySelector('.box-header input').value;
+    var text=card.querySelector('.box-row input[type="text"]').value,nums=qsa(card,'.box-row input[type="number"]');
+    var ci=card.querySelector('.box-row input[type="color"]'),fs=card.querySelector('.box-font');
+    boxes.push({id:bid,label:label,text:text,x:+nums[0].value,y:+nums[1].value,size:+nums[2].value,color:h2r(ci.value),stroke:+nums[3].value,font_path:fs?fs.value:''});
   });
   return boxes;
 }
@@ -155,7 +153,7 @@ function renderBoxes(boxes){
     card.innerHTML='<div class="box-header"><input type="text" value="'+esc(b.label)+'" placeholder="标签名" onchange="onBoxChange('+b.id+')"><button class="box-delete" onclick="delBox('+b.id+')">×</button></div>'
       +'<div class="box-row"><span class="lbl">文字</span><input type="text" value="'+esc(b.text)+'" placeholder="输入内容" onchange="onBoxChange('+b.id+')"></div>'
       +'<div class="box-row"><span class="lbl">X</span><input type="number" value="'+(b.x||0)+'" onchange="onBoxChange('+b.id+')"><span class="lbl">Y</span><input type="number" value="'+(b.y||0)+'" onchange="onBoxChange('+b.id+')"><span class="lbl">大小</span><input type="number" value="'+(b.size||60)+'" onchange="onBoxChange('+b.id+')" style="width:45px"><span class="lbl">描边</span><input type="number" value="'+(b.stroke||0)+'" onchange="onBoxChange('+b.id+')" min="0" max="6" style="width:40px"><input type="color" value="'+hex+'" onchange="onBoxChange('+b.id+')"><button class="box-select'+(b.id===activeId?' on':'')+'" onclick="setActive('+b.id+')">定位</button></div>'
-      +'<div class="box-row"><span class="lbl">字体</span><select onchange="onBoxChange('+b.id+')" class="box-font" data-bid="'+b.id+'" data-font="'+esc(b.font_path||'')+'" style="font-size:10px;max-width:180px"><option value="">(使用全局)</option></select></div>';
+      +'<div class="box-row"><span class="lbl">字体</span><select onchange="onBoxChange('+b.id+')" class="box-font" data-bid="'+b.id+'" data-font="'+esc(b.font_path||'')+'"><option value="">(使用全局)</option></select></div>';
     c.appendChild(card);
     var tag=document.createElement('span');tag.className='tag'+(b.id===activeId?' on':'');tag.textContent=b.label||'框'+b.id;
     tag.onclick=(function(i){return function(){setActive(i)}})(b.id);tr.appendChild(tag);
@@ -174,7 +172,7 @@ function delBox(id){
 }
 
 // 定位
-function setActive(id){activeId=id;qsa(document,'.box-card').forEach(function(c){c.classList.remove('active')});var card=$('boxCard_'+id);if(card)card.classList.add('active');qsa(document,'.tag').forEach(function(t){t.classList.remove('on')});qsa(document,'.box-select').forEach(function(b){b.classList.remove('on')});var sb=card?qs(card,'.box-select'):null;if(sb)sb.classList.add('on');syncCoord();refreshPreview()}
+function setActive(id){activeId=id;qsa(document,'.box-card').forEach(function(c){c.classList.remove('active')});var card=$('boxCard_'+id);if(card)card.classList.add('active');qsa(document,'.tag').forEach(function(t){t.classList.remove('on')});qsa(document,'.box-select').forEach(function(b){b.classList.remove('on')});var sb=card?card.querySelector('.box-select'):null;if(sb)sb.classList.add('on');syncCoord();refreshPreview()}
 function syncCoord(){var box=readBoxes().filter(function(b){return b.id===activeId})[0];if(!box)return;$('coordX').value=box.x;$('coordY').value=box.y;$('coordSize').value=box.size;$('coordLabel').textContent=box.label||'文本框'}
 
 // 服务端预览（单图替换，原子无闪烁）
@@ -197,8 +195,14 @@ function onPreviewClick(e){
 // 微调
 function stepCoord(a,d){var el=$('coord'+(a||'x').toUpperCase());el.value=Math.max(0,+el.value+d);onCoordInput()}
 function stepSize(d){var el=$('coordSize');el.value=Math.max(6,+el.value+d);onSizeInput()}
-function onCoordInput(){var box=readBoxes().filter(function(b){return b.id===activeId})[0];if(!box)return;box.x=+$('coordX').value;box.y=+$('coordY').value;writeBoxUI(box);saveAll();clearTimeout(previewTimer);previewTimer=setTimeout(refreshPreview,150)}
-function onSizeInput(){var box=readBoxes().filter(function(b){return b.id===activeId})[0];if(!box)return;box.size=+$('coordSize').value;writeBoxUI(box);saveAll();clearTimeout(previewTimer);previewTimer=setTimeout(refreshPreview,150)}
+function onCoordInput(){applyCoord('coord',['x','y'])}
+function onSizeInput(){applyCoord('size')}
+function applyCoord(type,props){
+  var box=readBoxes().filter(function(b){return b.id===activeId})[0];if(!box)return;
+  if(type==='coord'){box.x=+$('coordX').value;box.y=+$('coordY').value}
+  else{box.size=+$('coordSize').value}
+  writeBoxUI(box);saveAll();clearTimeout(previewTimer);previewTimer=setTimeout(refreshPreview,150);
+}
 
 // 配置
 function saveAll(boxes){var b=boxes||readBoxes();fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text_boxes:b,output_size:$('outputSize').value,output_format:$('outputFormat').value})})}
