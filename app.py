@@ -288,9 +288,12 @@ def _scan_fonts():
                     continue
                 try:
                     font = ImageFont.truetype(fp, 24)
-                    dummy = Image.new("RGB", (100, 30), (255, 255, 255))
-                    ImageDraw.Draw(dummy).text((2, 2), "中文", font=font, fill=(0, 0, 0))
-                    if any(p[0] != 255 or p[1] != 255 or p[2] != 255 for p in dummy.getdata()):
+                    dummy = Image.new("RGB", (180, 40), (255, 255, 255))
+                    d = ImageDraw.Draw(dummy)
+                    # 用更多样化的汉字测试，过滤只包含少量CJK字符的字体
+                    d.text((2, 2), "金榜题名高考喜报中文测试", font=font, fill=(0, 0, 0))
+                    has_glyph = any(p[0] != 255 or p[1] != 255 or p[2] != 255 for p in dummy.getdata())
+                    if has_glyph:
                         fonts.append({"name": name, "path": fp})
                 except Exception:
                     pass
